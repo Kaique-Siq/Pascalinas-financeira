@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pascalina — Finanças Pessoais</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07080c;
+  --surface:#0e1018;
+  --surface2:#141720;
+  --surface3:#1c2030;
+  --border:#ffffff0c;
+  --border2:#ffffff18;
+  --border3:#ffffff26;
+  --text:#f0f2f8;
+  --text2:#8a90a8;
+  --text3:#4a5068;
+  --green:#22e87a;
+  --green-bg:#0d2b1e;
+  --green-border:#1a4a30;
+  --red:#ff4d6a;
+  --red-bg:#2a0d14;
+  --red-border:#4a1a22;
+  --amber:#f5c842;
+  --amber-bg:#2a2210;
+  --amber-border:#4a3a18;
+  --accent:#818cf8;
+  --accent-dim:#1e2050;
+  --accent-glow:#818cf820;
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Syne',sans-serif;min-height:100vh;
+  font-size:14px;line-height:1.5;overflow-x:hidden;
+}
+body::before{
+  content:'';position:fixed;inset:0;
+  background:radial-gradient(ellipse 80% 50% at 20% -10%,#818cf810 0%,transparent 60%),
+             radial-gradient(ellipse 60% 40% at 80% 110%,#22e87a08 0%,transparent 50%);
+  pointer-events:none;z-index:0;
+}
+.shell{position:relative;z-index:1;max-width:1320px;margin:0 auto;padding:0 2rem 5rem}
+
+/* TOP BAR */
+.top-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.5rem 0 1.75rem;border-bottom:1px solid var(--border);
+  margin-bottom:2rem;gap:1rem;flex-wrap:wrap;
+}
+.logo{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;letter-spacing:.04em}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green);animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.6;transform:scale(.85)}}
+.nav{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:4px}
+.nav-btn{
+  padding:7px 18px;border-radius:7px;font-size:13px;font-weight:600;
+  color:var(--text2);cursor:pointer;border:none;background:transparent;
+  transition:all .2s;font-family:'Syne',sans-serif;letter-spacing:.02em;
+}
+.nav-btn.active{background:var(--surface3);color:var(--text);border:1px solid var(--border2)}
+.date-badge{
+  background:var(--surface);border:1px solid var(--border2);border-radius:8px;
+  padding:6px 14px;font-size:12px;font-weight:500;color:var(--text2);
+  font-family:'JetBrains Mono',monospace;white-space:nowrap;
+}
+
+/* VIEWS */
+.view{display:none}.view.active{display:block}
+
+/* KPIs */
+.kpi-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1.5rem}
+.kpi{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:1.4rem 1.5rem;position:relative;overflow:hidden;transition:border-color .25s;
+}
+.kpi:hover{border-color:var(--border2)}
+.kpi::before{content:'';position:absolute;top:0;right:0;width:80px;height:80px;border-radius:50%;opacity:.07;transform:translate(20px,-20px)}
+.kpi.bal::before{background:var(--accent)}.kpi.rec::before{background:var(--green)}.kpi.des::before{background:var(--red)}
+.kpi-label{font-size:11px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:.8rem}
+.kpi-value{font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1;font-family:'JetBrains Mono',monospace}
+.kpi.bal .kpi-value{color:var(--text)}.kpi.rec .kpi-value{color:var(--green)}.kpi.des .kpi-value{color:var(--red)}
+.kpi-change{margin-top:.5rem;font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+
+/* MAIN GRID */
+.main-grid{display:grid;grid-template-columns:1fr 360px;gap:1.5rem;align-items:start}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;margin-bottom:1.5rem}
+.card-pad{padding:1.5rem}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.card-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)}
+
+/* CHART */
+.bars-wrap{height:160px;display:flex;align-items:flex-end;gap:6px}
+.bar-col{flex:1;display:flex;gap:3px;align-items:flex-end}
+.bar{flex:1;border-radius:4px 4px 0 0;min-height:4px;transition:height .5s ease,opacity .2s}
+.bar:hover{opacity:.75}
+.bar.r{background:var(--green);opacity:.85}.bar.d{background:var(--red);opacity:.75}
+.bar-labels{display:flex;gap:6px;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.bar-label{flex:1;text-align:center;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.chart-legend{display:flex;gap:16px}
+.leg{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace}
+.leg-dot{width:6px;height:6px;border-radius:50%}
+
+/* LIST */
+.list-head{
+  display:grid;grid-template-columns:1fr 80px 110px 100px 120px 32px 32px;
+  gap:.5rem;padding:.7rem 1.25rem;border-bottom:1px solid var(--border);
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);font-weight:500;
+}
+.list-head span:nth-child(5){text-align:right}
+.list-body{max-height:380px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border3) transparent}
+.item{
+  display:grid;grid-template-columns:1fr 80px 110px 100px 120px 32px 32px;
+  gap:.5rem;padding:.85rem 1.25rem;border-bottom:1px solid var(--border);
+  align-items:center;transition:background .15s;animation:fadeIn .3s ease;
+}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.item:last-child{border-bottom:none}
+.item:hover{background:var(--surface2)}
+.item-desc{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-nat span{font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:5px;letter-spacing:.04em}
+.nat-fixa{background:var(--accent-dim);color:var(--accent);border:1px solid #818cf825}
+.nat-variavel{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+.item-cat{font-size:12px;color:var(--text2)}
+.item-date{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.item-val{font-size:14px;font-weight:600;font-family:'JetBrains Mono',monospace;text-align:right}
+.item-val.r{color:var(--green)}.item-val.d{color:var(--red)}
+.icon-btn{
+  width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+  border-radius:7px;border:1px solid transparent;cursor:pointer;
+  color:var(--text3);font-size:13px;transition:all .15s;background:transparent;font-family:inherit;
+}
+.icon-btn.del:hover{border-color:var(--red-border);background:var(--red-bg);color:var(--red)}
+.icon-btn.edt:hover{border-color:var(--accent-dim);background:var(--accent-dim);color:var(--accent)}
+.empty{padding:3rem;text-align:center;color:var(--text3);font-size:13px;letter-spacing:.04em}
+
+/* FILTERS */
+.filters{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.filter-btn{
+  padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;
+  border:1px solid var(--border2);background:transparent;color:var(--text2);
+  cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s;
+}
+.filter-btn.active{background:var(--surface3);color:var(--text);border-color:var(--border3)}
+.filter-btn.fr.active{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.filter-btn.fd.active{background:var(--red-bg);color:var(--red);border-color:var(--red-border)}
+.filter-btn.ff.active{background:var(--accent-dim);color:var(--accent);border-color:#818cf830}
+.filter-btn.fv.active{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.search-wrap{position:relative;flex:1;min-width:160px}
+.search-wrap input{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);font-size:13px;font-family:'Syne',sans-serif;
+  padding:7px 12px 7px 32px;outline:none;transition:border-color .2s;
+}
+.search-wrap input:focus{border-color:var(--accent)}
+.search-wrap::before{content:'⌕';position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:15px;pointer-events:none}
+
+/* FORM */
+.form-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;position:sticky;top:1.5rem}
+.form-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:1.25rem}
+.tipo-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:6px;
+  margin-bottom:1.25rem;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:5px;
+}
+.tipo-btn{
+  padding:9px;border-radius:9px;border:none;background:transparent;
+  color:var(--text2);font-size:13px;font-weight:600;font-family:'Syne',sans-serif;
+  cursor:pointer;transition:all .2s;letter-spacing:.02em;
+}
+.tipo-btn.ar{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tipo-btn.ad{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.45rem}
+.field input,.field select{
+  width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:10px;
+  color:var(--text);font-size:14px;font-family:'Syne',sans-serif;
+  padding:10px 14px;outline:none;transition:border-color .2s,box-shadow .2s;appearance:none;
+}
+.field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%234a5068' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;padding-right:36px;cursor:pointer;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.field input::placeholder{color:var(--text3)}
+.field input[type=date]{color-scheme:dark}
+.field input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none}
+
+/* NATUREZA TOGGLE */
+.nat-wrap{margin-bottom:1rem}
+.nat-wrap label{display:block;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.45rem}
+.nat-row{display:grid;grid-template-columns:1fr 1fr;gap:5px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:4px}
+.nat-btn{
+  padding:8px;border-radius:7px;border:none;background:transparent;
+  color:var(--text2);font-size:12px;font-weight:600;font-family:'Syne',sans-serif;
+  cursor:pointer;transition:all .2s;text-align:center;
+}
+.nat-btn.af{background:var(--accent-dim);color:var(--accent);border:1px solid #818cf830}
+.nat-btn.av{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-border)}
+
+.btn-submit{
+  width:100%;padding:12px;border-radius:10px;background:var(--accent);color:#fff;
+  border:none;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;
+  cursor:pointer;letter-spacing:.04em;transition:all .2s;margin-top:.5rem;position:relative;overflow:hidden;
+}
+.btn-submit::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,#fff2 0%,transparent 60%);opacity:0;transition:opacity .2s}
+.btn-submit:hover::before{opacity:1}
+.btn-submit:hover{transform:translateY(-1px);box-shadow:0 4px 20px #818cf840}
+.btn-submit:active{transform:none}
+.msg{margin-top:.6rem;font-size:12px;text-align:center;color:var(--green);font-family:'JetBrains Mono',monospace;min-height:18px;transition:opacity .3s}
+
+/* RELATÓRIOS */
+.rel-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+.rel-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.rel-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:1rem}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:1.1rem 1.25rem}
+.stat-label{font-size:10px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem}
+.stat-value{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.stat-sub{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:.3rem}
+.period-bar{display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:3px}
+.period-btn{padding:5px 14px;border-radius:5px;font-size:12px;font-weight:600;border:none;background:transparent;color:var(--text2);cursor:pointer;font-family:'Syne',sans-serif;transition:all .2s}
+.period-btn.active{background:var(--surface3);color:var(--text);border:1px solid var(--border2)}
+.rel-table{width:100%;border-collapse:collapse;font-size:13px}
+.rel-table th{text-align:left;padding:.5rem .75rem;border-bottom:1px solid var(--border);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3)}
+.rel-table td{padding:.6rem .75rem;border-bottom:1px solid var(--border)}
+.rel-table tr:last-child td{border-bottom:none}
+.rel-table tr:hover td{background:var(--surface2)}
+.rel-table .num{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:500}
+.rel-table .grn{color:var(--green)}.rel-table .red{color:var(--red)}
+.cat-bar-row{margin-bottom:.75rem}
+.cat-bar-info{display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem;font-size:12px}
+.cat-bar-name{color:var(--text2)}.cat-bar-val{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:500}
+.cat-bar-track{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.cat-bar-fill{height:100%;border-radius:3px;transition:width .6s ease}
+
+/* METAS */
+.metas-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.meta-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.meta-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem}
+.meta-name{font-size:15px;font-weight:600;color:var(--text)}
+.meta-pct{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.meta-track{height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;margin-bottom:.75rem}
+.meta-fill{height:100%;border-radius:4px;transition:width .8s ease}
+.meta-vals{display:flex;justify-content:space-between;font-size:12px;font-family:'JetBrains Mono',monospace}
+.meta-add-form{background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem}
+.meta-form-row{display:grid;grid-template-columns:1fr 1fr auto;gap:.75rem;align-items:flex-end}
+.btn-add-meta{padding:10px 16px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;white-space:nowrap;transition:opacity .2s}
+.btn-add-meta:hover{opacity:.85}
+.btn-del-meta{padding:5px 9px;border-radius:7px;background:transparent;color:var(--text3);border:1px solid var(--border);cursor:pointer;font-size:13px;transition:all .15s}
+.btn-del-meta:hover{color:var(--red);border-color:var(--red-border);background:var(--red-bg)}
+.meta-cat-badge{
+  display:inline-flex;align-items:center;gap:5px;margin-top:.4rem;
+  font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;
+  padding:3px 8px;border-radius:5px;
+  background:var(--accent-dim);color:var(--accent);border:1px solid #818cf825;
+}
+.meta-lancamentos{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border)}
+.meta-lanc-title{font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.5rem}
+.meta-lanc-list{display:flex;flex-direction:column;gap:3px;max-height:110px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border3) transparent}
+.meta-lanc-item{display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:3px 0;border-bottom:1px solid var(--border)}
+.meta-lanc-item:last-child{border-bottom:none}
+.meta-lanc-desc{color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px}
+.meta-lanc-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0}
+.meta-lanc-val{color:var(--accent);font-family:'JetBrains Mono',monospace;font-weight:500}
+.meta-lanc-date{color:var(--text3);font-family:'JetBrains Mono',monospace;font-size:10px}
+
+/* 50/30/20 */
+.regra-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem}
+.regra-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem}
+.regra-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2)}
+.regra-subtitle{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;margin-top:.3rem}
+.regra-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem;margin-bottom:1rem}
+.regra-col{border-radius:12px;padding:1.25rem;border:1px solid transparent}
+.regra-col.nec{background:#0d1e2b;border-color:#1a3a4a}
+.regra-col.des{background:#1e1028;border-color:#3a1a4a}
+.regra-col.pou{background:#0d2b1e;border-color:#1a4a30}
+.regra-col-header{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem}
+.regra-col-icon{font-size:16px}
+.regra-col-label{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase}
+.regra-col.nec .regra-col-label{color:#60a5fa}
+.regra-col.des .regra-col-label{color:var(--accent)}
+.regra-col.pou .regra-col-label{color:var(--green)}
+.regra-pct-ideal{font-size:26px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1}
+.regra-col.nec .regra-pct-ideal{color:#60a5fa}
+.regra-col.des .regra-pct-ideal{color:var(--accent)}
+.regra-col.pou .regra-pct-ideal{color:var(--green)}
+.regra-val-ideal{font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace;margin-top:.25rem;margin-bottom:.75rem}
+.regra-sep{height:1px;background:var(--border);margin:.6rem 0}
+.regra-real-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--text3);margin-bottom:.25rem}
+.regra-real-val{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.regra-real-pct{font-size:11px;font-family:'JetBrains Mono',monospace;margin:.2rem 0 .5rem}
+.regra-bar-track{height:5px;background:var(--surface3);border-radius:3px;overflow:hidden}
+.regra-bar-fill{height:100%;border-radius:3px;transition:width .8s ease}
+.regra-diff{display:flex;align-items:center;gap:4px;margin-top:.5rem;font-size:11px;font-family:'JetBrains Mono',monospace}
+.regra-diff.ok{color:var(--green)}.regra-diff.over{color:var(--red)}.regra-diff.neutral{color:var(--text3)}
+.regra-info{font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace;text-align:center;padding-top:.5rem;border-top:1px solid var(--border)}
+
+/* CONFIGURAÇÕES */
+.config-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.config-section{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:1.5rem}
+.config-section-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);margin-bottom:1.25rem;display:flex;align-items:center;gap:.5rem}
+.badge-tipo{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600;font-family:'JetBrains Mono',monospace}
+.badge-rec{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.badge-des{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.cat-add-row{display:flex;gap:.5rem;margin-bottom:1rem}
+.cat-add-row input{
+  flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:10px;
+  color:var(--text);font-size:13px;font-family:'Syne',sans-serif;
+  padding:9px 13px;outline:none;transition:border-color .2s;
+}
+.cat-add-row input:focus{border-color:var(--accent)}
+.cat-add-row input::placeholder{color:var(--text3)}
+.btn-cat-add{padding:9px 16px;border-radius:10px;border:none;font-size:13px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;white-space:nowrap;transition:all .2s}
+.btn-cat-add.rec{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.btn-cat-add.rec:hover{background:var(--green);color:#07080c}
+.btn-cat-add.des{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.btn-cat-add.des:hover{background:var(--red);color:#fff}
+.cat-list{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border3) transparent}
+.cat-item{
+  display:flex;align-items:center;gap:.5rem;padding:.6rem .85rem;border-radius:9px;
+  background:var(--surface2);border:1px solid var(--border);transition:border-color .15s;animation:fadeIn .2s ease;
+}
+.cat-item:hover{border-color:var(--border2)}
+.cat-item-name{flex:1;font-size:13px;color:var(--text);font-weight:500}
+.cat-item-input{
+  flex:1;background:var(--bg);border:1px solid var(--accent);border-radius:7px;
+  color:var(--text);font-size:13px;font-family:'Syne',sans-serif;padding:4px 10px;outline:none;
+}
+.btn-ci{
+  width:26px;height:26px;border-radius:7px;border:1px solid transparent;
+  cursor:pointer;font-size:12px;background:transparent;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .15s;color:var(--text3);font-family:inherit;flex-shrink:0;
+}
+.btn-ci.edt:hover{border-color:var(--border2);background:var(--surface3);color:var(--accent)}
+.btn-ci.sav:hover{border-color:var(--green-border);background:var(--green-bg);color:var(--green)}
+.btn-ci.can:hover{border-color:var(--border2);background:var(--surface3);color:var(--text2)}
+.btn-ci.del:hover{border-color:var(--red-border);background:var(--red-bg);color:var(--red)}
+.cat-empty{padding:1.5rem;text-align:center;color:var(--text3);font-size:12px}
+
+/* MODAL */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:#00000088;
+  z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px);
+}
+.modal-overlay.open{display:flex}
+.modal{
+  background:var(--surface);border:1px solid var(--border2);border-radius:20px;
+  padding:2rem;width:100%;max-width:440px;margin:1rem;animation:modalIn .2s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:1.5rem}
+.modal-footer{display:flex;gap:.5rem;margin-top:1rem}
+.btn-modal-save{flex:1;padding:11px;border-radius:10px;background:var(--accent);color:#fff;border:none;font-size:14px;font-weight:700;font-family:'Syne',sans-serif;cursor:pointer;transition:opacity .2s}
+.btn-modal-save:hover{opacity:.85}
+.btn-modal-cancel{flex:1;padding:11px;border-radius:10px;background:transparent;color:var(--text2);border:1px solid var(--border2);font-size:13px;font-weight:600;font-family:'Syne',sans-serif;cursor:pointer}
+.btn-modal-cancel:hover{color:var(--text)}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;z-index:2000;
+  background:var(--surface3);border:1px solid var(--border2);border-radius:12px;
+  padding:.75rem 1.25rem;font-size:13px;font-family:'JetBrains Mono',monospace;
+  opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;
+}
+.toast.show{opacity:1;transform:none}
+.toast.ok{color:var(--green);border-color:var(--green-border)}
+.toast.err{color:var(--red);border-color:var(--red-border)}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:4px}
+
+@media(max-width:1024px){
+  .main-grid{grid-template-columns:1fr}.form-card{position:static}
+  .rel-grid{grid-template-columns:1fr}.stat-row{grid-template-columns:1fr 1fr}
+  .metas-grid{grid-template-columns:1fr}.config-grid{grid-template-columns:1fr}
+  .meta-form-row{grid-template-columns:1fr 1fr}
+}
+@media(max-width:700px){
+  .shell{padding:0 1rem 3rem}
+  .kpi-row{grid-template-columns:1fr}
+  .list-head,.item{grid-template-columns:1fr 80px 32px 32px}
+  .list-head span:nth-child(2),.list-head span:nth-child(3),.list-head span:nth-child(4),
+  .item-nat,.item-cat,.item-date{display:none}
+  .stat-row{grid-template-columns:1fr 1fr}
+  .nav-btn{padding:7px 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  
+  <div class="top-bar">
+    <div class="logo"><div class="logo-dot"></div>pascalina</div>
+    <div class="nav">
+      <button class="nav-btn active" onclick="showView('overview')">visão geral</button>
+      <button class="nav-btn" onclick="showView('relatorios')">relatórios</button>
+      <button class="nav-btn" onclick="showView('metas')">metas</button>
+      <button class="nav-btn" onclick="showView('config')">configurações</button>
+    </div>
+    <div class="date-badge" id="date-badge">—</div>
+  </div>
+
+  
+  <div class="view active" id="view-overview">
+    <div class="kpi-row">
+      <div class="kpi bal">
+        <div class="kpi-label">saldo atual</div>
+        <div class="kpi-value" id="kpi-saldo">R$ 0,00</div>
+        <div class="kpi-change" id="kpi-saldo-sub">—</div>
+      </div>
+      <div class="kpi rec">
+        <div class="kpi-label">receitas totais</div>
+        <div class="kpi-value" id="kpi-rec">R$ 0,00</div>
+        <div class="kpi-change" id="kpi-rec-qt">0 lançamentos</div>
+      </div>
+      <div class="kpi des">
+        <div class="kpi-label">despesas totais</div>
+        <div class="kpi-value" id="kpi-des">R$ 0,00</div>
+        <div class="kpi-change" id="kpi-des-qt">0 lançamentos</div>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <div>
+        <div class="card card-pad">
+          <div class="card-header">
+            <div class="card-title">fluxo de caixa mensal</div>
+            <div class="chart-legend">
+              <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>receitas</div>
+              <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>despesas</div>
+            </div>
+          </div>
+          <div class="bars-wrap" id="chart-bars"></div>
+          <div class="bar-labels" id="chart-labels"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-pad" style="padding-bottom:1rem">
+            <div class="card-header" style="margin-bottom:.75rem">
+              <div class="card-title">lançamentos</div>
+            </div>
+            <div class="filters">
+              <div class="search-wrap">
+                <input type="text" id="search-input" placeholder="buscar..." oninput="renderList()">
+              </div>
+              <button class="filter-btn active" id="filt-all" onclick="setFilter('all')">todos</button>
+              <button class="filter-btn fr" id="filt-r" onclick="setFilter('r')">receitas</button>
+              <button class="filter-btn fd" id="filt-d" onclick="setFilter('d')">despesas</button>
+              <button class="filter-btn ff" id="filt-f" onclick="setFilter('f')">fixa</button>
+              <button class="filter-btn fv" id="filt-v" onclick="setFilter('v')">variável</button>
+            </div>
+          </div>
+          <div class="list-head">
+            <span>descrição</span>
+            <span>natureza</span>
+            <span>categoria</span>
+            <span>data</span>
+            <span style="text-align:right">valor</span>
+            <span></span><span></span>
+          </div>
+          <div class="list-body" id="list-body">
+            <div class="empty">carregando...</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="form-card">
+          <div class="form-title">novo lançamento</div>
+          <div class="tipo-row">
+            <button class="tipo-btn ar" id="btn-r" onclick="setTipo('r')">↑ receita</button>
+            <button class="tipo-btn" id="btn-d" onclick="setTipo('d')">↓ despesa</button>
+          </div>
+          <div class="field">
+            <label>descrição</label>
+            <input type="text" id="f-desc" maxlength="60" placeholder="ex: salário, aluguel...">
+          </div>
+          <div class="field">
+            <label>valor (R$)</label>
+            <input type="number" id="f-valor" min="0" step="0.01" placeholder="0,00">
+          </div>
+          <div class="field">
+            <label>categoria</label>
+            <select id="f-cat"></select>
+          </div>
+          <div class="nat-wrap" id="f-nat-wrap" style="display:none">
+            <label>natureza</label>
+            <div class="nat-row">
+              <button class="nat-btn af" id="f-nat-f" onclick="setNat('fixa')">⬛ fixa</button>
+              <button class="nat-btn" id="f-nat-v" onclick="setNat('variavel')">◈ variável</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>data</label>
+            <input type="date" id="f-data">
+          </div>
+          <button class="btn-submit" onclick="registrar()">registrar lançamento</button>
+          <div class="msg" id="msg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  <div class="view" id="view-relatorios">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+      <div style="font-size:20px;font-weight:700">relatórios financeiros</div>
+      <div class="period-bar">
+        <button class="period-btn" onclick="setPeriod(1)">1M</button>
+        <button class="period-btn" onclick="setPeriod(3)">3M</button>
+        <button class="period-btn active" onclick="setPeriod(6)">6M</button>
+        <button class="period-btn" onclick="setPeriod(12)">12M</button>
+        <button class="period-btn" onclick="setPeriod(0)">tudo</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-label">total receitas</div>
+        <div class="stat-value" id="rel-tot-rec" style="color:var(--green)">—</div>
+        <div class="stat-sub" id="rel-qt-rec">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">total despesas</div>
+        <div class="stat-value" id="rel-tot-des" style="color:var(--red)">—</div>
+        <div class="stat-sub" id="rel-qt-des">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">resultado</div>
+        <div class="stat-value" id="rel-resultado">—</div>
+        <div class="stat-sub">no período</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">média mensal gasto</div>
+        <div class="stat-value" id="rel-media" style="color:var(--amber)">—</div>
+        <div class="stat-sub">por mês</div>
+      </div>
+    </div>
+    <div class="rel-grid">
+      <div class="rel-section">
+        <div class="rel-title">resumo por mês</div>
+        <table class="rel-table">
+          <thead><tr>
+            <th>mês</th><th class="num">receitas</th><th class="num">despesas</th><th class="num">saldo</th>
+          </tr></thead>
+          <tbody id="rel-mensal-body"></tbody>
+        </table>
+      </div>
+      <div class="rel-section">
+        <div class="rel-title">top categorias — despesas</div>
+        <div id="rel-cat-des"></div>
+        <div style="margin-top:1.5rem" class="rel-title">top categorias — receitas</div>
+        <div id="rel-cat-rec"></div>
+      </div>
+    </div>
+    <div class="card card-pad">
+      <div class="card-header">
+        <div class="card-title">evolução mensal</div>
+        <div class="chart-legend">
+          <div class="leg"><div class="leg-dot" style="background:var(--green)"></div>receitas</div>
+          <div class="leg"><div class="leg-dot" style="background:var(--red)"></div>despesas</div>
+        </div>
+      </div>
+      <div class="bars-wrap" id="rel-chart-bars" style="height:200px"></div>
+      <div class="bar-labels" id="rel-chart-labels"></div>
+    </div>
+
+    
+    <div class="regra-section">
+      <div class="regra-header">
+        <div>
+          <div class="regra-title">regra 50 · 30 · 20</div>
+          <div class="regra-subtitle">ideal vs real — por mês</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap">
+          <div id="regra-renda-info" style="font-size:12px;color:var(--text2);font-family:'JetBrains Mono',monospace"></div>
+          <div class="period-bar" id="regra-mes-bar" style="gap:3px"></div>
+        </div>
+      </div>
+      <div class="regra-grid">
+        <div class="regra-col nec">
+          <div class="regra-col-header">
+            <span class="regra-col-icon">🏠</span>
+            <span class="regra-col-label">necessidades</span>
+          </div>
+          <div class="regra-pct-ideal">50%</div>
+          <div class="regra-val-ideal" id="regra-ideal-nec">ideal: —</div>
+          <div class="regra-sep"></div>
+          <div class="regra-real-label">real (despesas fixas)</div>
+          <div class="regra-real-val" id="regra-real-nec-val" style="color:#60a5fa">—</div>
+          <div class="regra-real-pct" id="regra-real-nec-pct" style="color:var(--text3)">—</div>
+          <div class="regra-bar-track">
+            <div class="regra-bar-fill" id="regra-bar-nec" style="background:#60a5fa;width:0%"></div>
+          </div>
+          <div class="regra-diff" id="regra-diff-nec"></div>
+        </div>
+        <div class="regra-col des">
+          <div class="regra-col-header">
+            <span class="regra-col-icon">🎬</span>
+            <span class="regra-col-label">desejos</span>
+          </div>
+          <div class="regra-pct-ideal">30%</div>
+          <div class="regra-val-ideal" id="regra-ideal-des">ideal: —</div>
+          <div class="regra-sep"></div>
+          <div class="regra-real-label">real (despesas variáveis)</div>
+          <div class="regra-real-val" id="regra-real-des-val" style="color:var(--accent)">—</div>
+          <div class="regra-real-pct" id="regra-real-des-pct" style="color:var(--text3)">—</div>
+          <div class="regra-bar-track">
+            <div class="regra-bar-fill" id="regra-bar-des" style="background:var(--accent);width:0%"></div>
+          </div>
+          <div class="regra-diff" id="regra-diff-des"></div>
+        </div>
+        <div class="regra-col pou">
+          <div class="regra-col-header">
+            <span class="regra-col-icon">💰</span>
+            <span class="regra-col-label">poupança</span>
+          </div>
+          <div class="regra-pct-ideal">20%</div>
+          <div class="regra-val-ideal" id="regra-ideal-pou">ideal: —</div>
+          <div class="regra-sep"></div>
+          <div class="regra-real-label">real (receita − despesas)</div>
+          <div class="regra-real-val" id="regra-real-pou-val" style="color:var(--green)">—</div>
+          <div class="regra-real-pct" id="regra-real-pou-pct" style="color:var(--text3)">—</div>
+          <div class="regra-bar-track">
+            <div class="regra-bar-fill" id="regra-bar-pou" style="background:var(--green);width:0%"></div>
+          </div>
+          <div class="regra-diff" id="regra-diff-pou"></div>
+        </div>
+      </div>
+      <div class="regra-info">necessidades = despesas fixas · desejos = despesas variáveis · poupança = receita total − todas despesas</div>
+    </div>
+  </div>
+
+  
+  <div class="view" id="view-metas">
+    <div style="font-size:20px;font-weight:700;margin-bottom:1.5rem">metas financeiras</div>
+    <div class="meta-add-form">
+      <div class="card-title" style="margin-bottom:1rem">nova meta</div>
+      <div class="meta-form-row">
+        <div class="field" style="margin:0"><label>nome da meta</label><input type="text" id="meta-nome" placeholder="ex: reserva de emergência"></div>
+        <div class="field" style="margin:0"><label>valor alvo (R$)</label><input type="number" id="meta-alvo" min="0" step="0.01" placeholder="0,00"></div>
+        <button class="btn-add-meta" onclick="addMeta()">+ criar meta</button>
+      </div>
+      <div style="margin-top:.75rem;font-size:11px;color:var(--text3);font-family:'JetBrains Mono',monospace">
+        ◈ uma categoria <span style="color:var(--accent)">META: {nome}</span> será criada automaticamente — toda despesa nessa categoria acumula na meta
+      </div>
+    </div>
+    <div class="metas-grid" id="metas-grid">
+      <div class="empty" style="grid-column:span 2;background:var(--surface);border-radius:16px;border:1px solid var(--border)">nenhuma meta cadastrada ainda</div>
+    </div>
+  </div>
+
+  
+  <div class="view" id="view-config">
+    <div style="font-size:20px;font-weight:700;margin-bottom:1.5rem">configurações</div>
+    <div class="config-grid">
+      <div class="config-section">
+        <div class="config-section-title">
+          categorias <span class="badge-tipo badge-rec">receita</span>
+        </div>
+        <div class="cat-add-row">
+          <input type="text" id="cat-new-rec" placeholder="nova categoria..." maxlength="40">
+          <button class="btn-cat-add rec" onclick="addCat('receita')">+ add</button>
+        </div>
+        <div class="cat-list" id="cat-list-rec"><div class="cat-empty">carregando...</div></div>
+      </div>
+      <div class="config-section">
+        <div class="config-section-title">
+          categorias <span class="badge-tipo badge-des">despesa</span>
+        </div>
+        <div class="cat-add-row">
+          <input type="text" id="cat-new-des" placeholder="nova categoria..." maxlength="40">
+          <button class="btn-cat-add des" onclick="addCat('despesa')">+ add</button>
+        </div>
+        <div class="cat-list" id="cat-list-des"><div class="cat-empty">carregando...</div></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /shell -->
+
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">editar lançamento</div>
+    <input type="hidden" id="edit-id">
+    <div class="tipo-row" style="margin-bottom:1.25rem">
+      <button class="tipo-btn ar" id="edit-btn-r" onclick="setEditTipo('r')">↑ receita</button>
+      <button class="tipo-btn" id="edit-btn-d" onclick="setEditTipo('d')">↓ despesa</button>
+    </div>
+    <div class="field"><label>descrição</label><input type="text" id="edit-desc" maxlength="60"></div>
+    <div class="field"><label>valor (R$)</label><input type="number" id="edit-valor" min="0" step="0.01"></div>
+    <div class="field"><label>categoria</label><select id="edit-cat"></select></div>
+    <div class="nat-wrap" id="edit-nat-wrap" style="display:none">
+      <label>natureza</label>
+      <div class="nat-row">
+        <button class="nat-btn af" id="edit-nat-f" onclick="setEditNat('fixa')">⬛ fixa</button>
+        <button class="nat-btn" id="edit-nat-v" onclick="setEditNat('variavel')">◈ variável</button>
+      </div>
+    </div>
+    <div class="field"><label>data</label><input type="date" id="edit-data"></div>
+    <div class="modal-footer">
+      <button class="btn-modal-save" onclick="saveEdit()">salvar</button>
+      <button class="btn-modal-cancel" onclick="closeModal()">cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let dados = [];
+let catRaw = [];
+let catMap = { receita: [], despesa: [] };
+let tipo = 'r';
+let nat = 'fixa';
+let editTipo = 'r';
+let editNat = 'fixa';
+let filtro = 'all';
+let period = 6;
+let metas = JSON.parse(localStorage.getItem('pascalina_metas') || '[]');
+
+document.getElementById('f-data').value = dtToday();
+document.getElementById('date-badge').textContent =
+  new Date().toLocaleDateString('pt-BR', { weekday:'short', day:'numeric', month:'short', year:'numeric' });
+setTipo('r');
+loadAll();
+
+function dtToday() { return new Date().toISOString().split('T')[0] }
+
+function showView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('view-' + v).classList.add('active');
+  const idx = { overview:0, relatorios:1, metas:2, config:3 }[v];
+  document.querySelectorAll('.nav-btn')[idx].classList.add('active');
+  if (v === 'relatorios') renderRelatorios();
+  if (v === 'metas') { renderMetas(); }
+  if (v === 'config') renderCatLists();
+}
+
+async function post(path, body) {
+  const r = await fetch(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return r.json();
+}
+
+async function loadAll() {
+  try {
+    const [rDados, rCats] = await Promise.all([
+      fetch('/api/dados'),
+      fetch('/api/categorias')
+    ]);
+    dados = await rDados.json();
+    catRaw = await rCats.json();
+    catMap.receita = catRaw.filter(c => c.tipo === 'receita').map(c => c.nome);
+    catMap.despesa = catRaw.filter(c => c.tipo === 'despesa').map(c => c.nome);
+    populateSelects();
+    renderAll();
+    // Atualiza metas se a aba estiver visível
+    if (document.getElementById('view-metas').classList.contains('active')) renderMetas();
+  } catch(e) {
+    showToast('erro ao conectar ao servidor', 'err');
+  }
+}
+
+async function loadCats() {
+  const r = await fetch('/api/categorias');
+  catRaw = await r.json();
+  catMap.receita = catRaw.filter(c => c.tipo === 'receita').map(c => c.nome);
+  catMap.despesa = catRaw.filter(c => c.tipo === 'despesa').map(c => c.nome);
+  populateSelects();
+  renderCatLists();
+}
+
+function setTipo(t) {
+  tipo = t;
+  document.getElementById('btn-r').className = 'tipo-btn' + (t==='r' ? ' ar' : '');
+  document.getElementById('btn-d').className = 'tipo-btn' + (t==='d' ? ' ad' : '');
+  populateSelect('f-cat', t==='r' ? 'receita' : 'despesa');
+  document.getElementById('f-nat-wrap').style.display = 'block';
+}
+
+function setNat(n) {
+  nat = n;
+  document.getElementById('f-nat-f').className = 'nat-btn' + (n==='fixa' ? ' af' : '');
+  document.getElementById('f-nat-v').className = 'nat-btn' + (n==='variavel' ? ' av' : '');
+}
+
+function setEditTipo(t) {
+  editTipo = t;
+  document.getElementById('edit-btn-r').className = 'tipo-btn' + (t==='r' ? ' ar' : '');
+  document.getElementById('edit-btn-d').className = 'tipo-btn' + (t==='d' ? ' ad' : '');
+  populateSelect('edit-cat', t==='r' ? 'receita' : 'despesa');
+  document.getElementById('edit-nat-wrap').style.display = 'block';
+}
+
+function setEditNat(n) {
+  editNat = n;
+  document.getElementById('edit-nat-f').className = 'nat-btn' + (n==='fixa' ? ' af' : '');
+  document.getElementById('edit-nat-v').className = 'nat-btn' + (n==='variavel' ? ' av' : '');
+}
+
+function populateSelects() {
+  populateSelect('f-cat', tipo==='r' ? 'receita' : 'despesa');
+  populateSelect('edit-cat', editTipo==='r' ? 'receita' : 'despesa');
+}
+
+function populateSelect(id, tipoFiltro) {
+  const sel = document.getElementById(id);
+  if (!sel) return;
+  const prev = sel.value;
+  sel.innerHTML = (catMap[tipoFiltro] || []).map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if (prev) for (const o of sel.options) { if (o.value === prev) { o.selected = true; break } }
+}
+
+function setFilter(f) {
+  filtro = f;
+  ['all','r','d','f','v'].forEach(x => {
+    const b = document.getElementById('filt-' + x);
+    if (b) b.classList.toggle('active', x === f);
+  });
+  renderList();
+}
+
+function renderAll() { renderKPIs(); renderChart(); renderList(); }
+
+function renderKPIs() {
+  const rec = dados.filter(l => l.tipo === 'receita');
+  const des = dados.filter(l => l.tipo === 'despesa');
+  const tRec = rec.reduce((s,l) => s+l.valor, 0);
+  const tDes = des.reduce((s,l) => s+l.valor, 0);
+  const saldo = tRec - tDes;
+  document.getElementById('kpi-saldo').textContent = brl(saldo);
+  document.getElementById('kpi-saldo').style.color = saldo>=0 ? 'var(--text)' : 'var(--red)';
+  document.getElementById('kpi-saldo-sub').textContent = (saldo>=0?'+ ':' ') + brl(Math.abs(saldo));
+  document.getElementById('kpi-saldo-sub').style.color = saldo>=0 ? 'var(--green)' : 'var(--red)';
+  document.getElementById('kpi-rec').textContent = brl(tRec);
+  document.getElementById('kpi-rec-qt').textContent = rec.length + ' lançamentos';
+  document.getElementById('kpi-des').textContent = brl(tDes);
+  document.getElementById('kpi-des-qt').textContent = des.length + ' lançamentos';
+}
+
+function renderChart() {
+  const meses = getLast6Months();
+  const totals = meses.map(m => ({
+    r: dados.filter(l=>l.data&&l.data.startsWith(m.key)&&l.tipo==='receita').reduce((s,l)=>s+l.valor,0),
+    d: dados.filter(l=>l.data&&l.data.startsWith(m.key)&&l.tipo==='despesa').reduce((s,l)=>s+l.valor,0)
+  }));
+  const max = Math.max(...totals.flatMap(t=>[t.r,t.d]), 1);
+  document.getElementById('chart-bars').innerHTML = totals.map(t=>`
+    <div class="bar-col">
+      <div class="bar r" style="height:${pxH(t.r,max,150)}px" title="${brl(t.r)}"></div>
+      <div class="bar d" style="height:${pxH(t.d,max,150)}px" title="${brl(t.d)}"></div>
+    </div>`).join('');
+  document.getElementById('chart-labels').innerHTML = meses.map(m=>`<div class="bar-label">${m.label}</div>`).join('');
+}
+
+function renderList() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  let list = [...dados];
+  if (filtro==='r') list = list.filter(l=>l.tipo==='receita');
+  if (filtro==='d') list = list.filter(l=>l.tipo==='despesa');
+  if (filtro==='f') list = list.filter(l=>l.natureza==='fixa');
+  if (filtro==='v') list = list.filter(l=>l.natureza==='variavel');
+  if (q) list = list.filter(l=>(l.descricao+l.categoria).toLowerCase().includes(q));
+
+  if (!list.length) {
+    document.getElementById('list-body').innerHTML = '<div class="empty">nenhum lançamento encontrado</div>';
+    return;
+  }
+  document.getElementById('list-body').innerHTML = list.map((l, i) => {
+    const natBadge = `<span class="${l.natureza==='fixa'?'nat-fixa':'nat-variavel'}">${l.natureza==='fixa'?'fixa':'variável'}</span>`;
+    return `<div class="item" style="animation-delay:${Math.min(i,20)*20}ms">
+      <div class="item-desc">${esc(l.descricao)}</div>
+      <div class="item-nat">${natBadge}</div>
+      <div class="item-cat">${esc(l.categoria||'—')}</div>
+      <div class="item-date">${l.data}</div>
+      <div class="item-val ${l.tipo==='receita'?'r':'d'}">${l.tipo==='receita'?'+':'−'} ${brl(l.valor)}</div>
+      <button class="icon-btn edt" onclick='openEdit(${JSON.stringify(l)})' title="editar">✎</button>
+      <button class="icon-btn del" onclick="deletar('${l.id}')" title="excluir">×</button>
+    </div>`;
+  }).join('');
+}
+
+async function registrar() {
+  const desc = document.getElementById('f-desc').value.trim();
+  const valor = parseFloat(document.getElementById('f-valor').value);
+  const cat = document.getElementById('f-cat').value;
+  const data = document.getElementById('f-data').value;
+  const natureza = nat;
+  if (!desc || isNaN(valor) || valor<=0) { showMsg('preencha descrição e valor válido','var(--red)'); return }
+  const res = await post('/api/lancar', {
+    descricao:desc, valor, categoria:cat, data,
+    tipo: tipo==='r'?'receita':'despesa', natureza
+  });
+  if (res.ok) {
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-valor').value = '';
+    showMsg('registrado ✓','var(--green)');
+    showToast('lançamento registrado','ok');
+    await loadAll();
+  } else { showMsg('erro ao registrar','var(--red)') }
+}
+
+async function deletar(id) {
+  if (!confirm('excluir este lançamento?')) return;
+  await post('/api/delete', { id });
+  showToast('excluído','ok');
+  await loadAll();
+}
+
+function openEdit(item) {
+  editNat = item.natureza || 'variavel';
+  setEditTipo(item.tipo==='receita' ? 'r' : 'd');
+  document.getElementById('edit-id').value = item.id;
+  document.getElementById('edit-desc').value = item.descricao;
+  document.getElementById('edit-valor').value = item.valor;
+  document.getElementById('edit-data').value = item.data;
+  setTimeout(() => {
+    const sel = document.getElementById('edit-cat');
+    for (const o of sel.options) { if (o.value===item.categoria) { o.selected=true; break } }
+    setEditNat(item.natureza||'variavel');
+  }, 30);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+async function saveEdit() {
+  const id = document.getElementById('edit-id').value;
+  const desc = document.getElementById('edit-desc').value.trim();
+  const valor = parseFloat(document.getElementById('edit-valor').value);
+  const cat = document.getElementById('edit-cat').value;
+  const data = document.getElementById('edit-data').value;
+  if (!desc || isNaN(valor) || valor<=0) { showToast('dados inválidos','err'); return }
+  const res = await post('/api/update', {
+    id, descricao:desc, valor, categoria:cat, data,
+    tipo: editTipo==='r'?'receita':'despesa',
+    natureza: editNat
+  });
+  if (res.ok) { closeModal(); showToast('atualizado','ok'); await loadAll() }
+  else { showToast('erro ao atualizar','err') }
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function setPeriod(p) {
+  period = p;
+  document.querySelectorAll('.period-btn').forEach((b,i) => b.classList.toggle('active', [1,3,6,12,0][i]===p));
+  renderRelatorios();
+}
+
+function renderRelatorios() {
+  const cutoff = period===0 ? null : (() => { const d=new Date(); d.setMonth(d.getMonth()-period); return d })();
+  const filtered = dados.filter(l => !cutoff || new Date(l.data) >= cutoff);
+  const rec = filtered.filter(l=>l.tipo==='receita');
+  const des = filtered.filter(l=>l.tipo==='despesa');
+  const tRec = rec.reduce((s,l)=>s+l.valor,0);
+  const tDes = des.reduce((s,l)=>s+l.valor,0);
+  const resultado = tRec - tDes;
+
+  document.getElementById('rel-tot-rec').textContent = brl(tRec);
+  document.getElementById('rel-qt-rec').textContent = rec.length + ' lançamentos';
+  document.getElementById('rel-tot-des').textContent = brl(tDes);
+  document.getElementById('rel-qt-des').textContent = des.length + ' lançamentos';
+  document.getElementById('rel-resultado').textContent = brl(resultado);
+  document.getElementById('rel-resultado').style.color = resultado>=0 ? 'var(--green)' : 'var(--red)';
+
+  const mesesSet = new Set(filtered.map(l=>l.data?l.data.substring(0,7):'').filter(Boolean));
+  document.getElementById('rel-media').textContent = brl(tDes / Math.max(mesesSet.size,1));
+
+  const meses = [...mesesSet].sort().reverse();
+  document.getElementById('rel-mensal-body').innerHTML = meses.length
+    ? meses.map(m => {
+        const r = rec.filter(l=>l.data&&l.data.startsWith(m)).reduce((s,l)=>s+l.valor,0);
+        const d = des.filter(l=>l.data&&l.data.startsWith(m)).reduce((s,l)=>s+l.valor,0);
+        const sal = r - d;
+        const lbl = new Date(m+'-15').toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+        return `<tr>
+          <td>${lbl}</td>
+          <td class="num grn">${brl(r)}</td>
+          <td class="num red">${brl(d)}</td>
+          <td class="num ${sal>=0?'grn':'red'}">${brl(sal)}</td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:2rem">sem dados no período</td></tr>`;
+
+  renderCatBars('rel-cat-des', des, ['#818cf8','#f5c842','#60a5fa','#fb7185','#34d399','#fbbf24']);
+  renderCatBars('rel-cat-rec', rec, ['#22e87a','#60d994','#a8f0c8','#34d399','#6ee7b7','#0d6b3a']);
+
+  const mesesAsc = [...mesesSet].sort();
+  const totals = mesesAsc.map(m => ({
+    r: rec.filter(l=>l.data&&l.data.startsWith(m)).reduce((s,l)=>s+l.valor,0),
+    d: des.filter(l=>l.data&&l.data.startsWith(m)).reduce((s,l)=>s+l.valor,0)
+  }));
+  const max = Math.max(...totals.flatMap(t=>[t.r,t.d]),1);
+  document.getElementById('rel-chart-bars').innerHTML = totals.map(t=>`
+    <div class="bar-col">
+      <div class="bar r" style="height:${pxH(t.r,max,190)}px" title="${brl(t.r)}"></div>
+      <div class="bar d" style="height:${pxH(t.d,max,190)}px" title="${brl(t.d)}"></div>
+    </div>`).join('');
+  document.getElementById('rel-chart-labels').innerHTML = mesesAsc.map(m =>
+    `<div class="bar-label">${new Date(m+'-15').toLocaleDateString('pt-BR',{month:'short'})}</div>`
+  ).join('');
+
+  renderRegra5030(filtered, tRec, tDes);
+}
+
+function renderCatBars(elId, lista, colors) {
+  const map = {};
+  lista.forEach(l => { const c=l.categoria||'outro'; map[c]=(map[c]||0)+l.valor });
+  const sorted = Object.entries(map).sort((a,b)=>b[1]-a[1]);
+  const max = sorted[0]?sorted[0][1]:1;
+  document.getElementById(elId).innerHTML = sorted.slice(0,6).map(([cat,val],i)=>`
+    <div class="cat-bar-row">
+      <div class="cat-bar-info">
+        <span class="cat-bar-name">${esc(cat)}</span>
+        <span class="cat-bar-val">${brl(val)}</span>
+      </div>
+      <div class="cat-bar-track">
+        <div class="cat-bar-fill" style="width:${(val/max*100).toFixed(1)}%;background:${colors[i%colors.length]}"></div>
+      </div>
+    </div>`).join('') || '<div style="color:var(--text3);font-size:13px">sem dados</div>';
+}
+
+let regraMesSel = null;
+
+function renderRegra5030(filtered, tRec, tDes) {
+  // Monta lista de meses disponíveis no período
+  const mesesSet = new Set(filtered.map(l => l.data ? l.data.substring(0,7) : '').filter(Boolean));
+  const meses = [...mesesSet].sort().reverse();
+
+  // Monta botões de seleção de mês
+  const bar = document.getElementById('regra-mes-bar');
+  if (!bar) return;
+
+  // Se o mês selecionado não existe no período atual, usa o mais recente
+  if (!regraMesSel || !meses.includes(regraMesSel)) {
+    regraMesSel = meses[0] || null;
+  }
+
+  bar.innerHTML = meses.map(m => {
+    const lbl = new Date(m+'-15').toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('.','');
+    const active = m === regraMesSel ? ' active' : '';
+    return `<button class="period-btn${active}" onclick="regraMesSel='${m}';renderRegra5030Cards()">${lbl}</button>`;
+  }).join('');
+
+  renderRegra5030Cards();
+}
+
+function renderRegra5030Cards() {
+  const m = regraMesSel;
+
+  const setEmpty = () => {
+    document.getElementById('regra-renda-info').textContent = 'sem dados';
+    ['nec','des','pou'].forEach(k => {
+      document.getElementById('regra-ideal-'+k).textContent = 'ideal: —';
+      document.getElementById('regra-real-'+k+'-val').textContent = '—';
+      document.getElementById('regra-real-'+k+'-pct').textContent = '—';
+      document.getElementById('regra-bar-'+k).style.width = '0%';
+      document.getElementById('regra-diff-'+k).textContent = '';
+      document.getElementById('regra-diff-'+k).className = 'regra-diff neutral';
+    });
+  };
+
+  if (!m) { setEmpty(); return; }
+
+  // Atualiza botões ativos
+  document.querySelectorAll('#regra-mes-bar .period-btn').forEach(b => {
+    b.classList.toggle('active', b.textContent === new Date(m+'-15').toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}).replace('.',''));
+  });
+
+  const mes = dados.filter(l => l.data && l.data.startsWith(m));
+  const rec  = mes.filter(l=>l.tipo==='receita').reduce((s,l)=>s+l.valor,0);
+  const nec  = mes.filter(l=>l.tipo==='despesa'&&l.natureza==='fixa').reduce((s,l)=>s+l.valor,0);
+  const des  = mes.filter(l=>l.tipo==='despesa'&&l.natureza==='variavel').reduce((s,l)=>s+l.valor,0);
+  const totD = mes.filter(l=>l.tipo==='despesa').reduce((s,l)=>s+l.valor,0);
+  const pou  = Math.max(rec - totD, 0);
+
+  if (rec <= 0) { setEmpty(); return; }
+
+  const iNec = rec * 0.50, iDes = rec * 0.30, iPou = rec * 0.20;
+
+  document.getElementById('regra-renda-info').textContent = 'renda: ' + brl(rec);
+
+  function setCol(key, real, ideal, limitePct) {
+    const pctRenda = rec > 0 ? (real/rec*100) : 0;
+    const barW = Math.min((pctRenda / limitePct) * 100, 100);
+    const diff = real - ideal;
+    const isPou = key === 'pou';
+
+    document.getElementById('regra-ideal-'+key).textContent = 'ideal: ' + brl(ideal);
+    document.getElementById('regra-real-'+key+'-val').textContent = brl(real);
+    document.getElementById('regra-real-'+key+'-pct').textContent = pctRenda.toFixed(1) + '% da renda';
+    document.getElementById('regra-bar-'+key).style.width = barW.toFixed(1) + '%';
+
+    const diffEl = document.getElementById('regra-diff-'+key);
+    if (isPou) {
+      diffEl.className = 'regra-diff ' + (diff >= 0 ? 'ok' : 'over');
+      diffEl.innerHTML = diff >= 0
+        ? '▲ ' + brl(diff) + ' acima do ideal'
+        : '▼ ' + brl(Math.abs(diff)) + ' abaixo do ideal';
+    } else {
+      diffEl.className = 'regra-diff ' + (diff <= 0 ? 'ok' : 'over');
+      diffEl.innerHTML = diff <= 0
+        ? '✓ ' + brl(Math.abs(diff)) + ' dentro do limite'
+        : '⚠ ' + brl(diff) + ' acima do limite';
+    }
+  }
+
+  setCol('nec', nec, iNec, 50);
+  setCol('des', des, iDes, 30);
+  setCol('pou', pou, iPou, 20);
+}
+
+async function addMeta() {
+  const nome = document.getElementById('meta-nome').value.trim();
+  const alvo = parseFloat(document.getElementById('meta-alvo').value);
+  if (!nome || isNaN(alvo) || alvo<=0) { showToast('preencha nome e valor alvo','err'); return }
+
+  const catNome = 'META: ' + nome;
+
+  // Cria a categoria de despesa no backend
+  const resCat = await post('/api/categoria/criar', { nome: catNome, tipo: 'despesa' });
+  if (!resCat.ok && resCat.erro !== 'categoria já existe') {
+    showToast('erro ao criar categoria da meta','err'); return;
+  }
+
+  // Recarrega categorias para ter o ID correto
+  await loadCats();
+
+  metas.push({ id: Date.now().toString(), nome, alvo, catNome });
+  saveMetas(); renderMetas();
+  document.getElementById('meta-nome').value='';
+  document.getElementById('meta-alvo').value='';
+  showToast('meta criada e categoria vinculada ✓','ok');
+}
+
+function deleteMeta(id) {
+  if (!confirm('excluir esta meta? A categoria META vinculada não será removida automaticamente.')) return;
+  metas = metas.filter(m=>m.id!==id);
+  saveMetas(); renderMetas();
+  showToast('meta removida','ok');
+}
+
+function saveMetas() { localStorage.setItem('pascalina_metas', JSON.stringify(metas)) }
+
+function getMetaAtual(m) {
+  // Soma todas as despesas cuja categoria é a catNome da meta
+  return dados
+    .filter(l => l.tipo==='despesa' && l.categoria === m.catNome)
+    .reduce((s,l) => s+l.valor, 0);
+}
+
+function renderMetas() {
+  const el = document.getElementById('metas-grid');
+  if (!metas.length) {
+    el.innerHTML='<div class="empty" style="grid-column:span 2;background:var(--surface);border-radius:16px;border:1px solid var(--border)">nenhuma meta cadastrada ainda</div>';
+    return;
+  }
+  el.innerHTML = metas.map(m => {
+    const atual = getMetaAtual(m);
+    const pct = Math.min((atual/m.alvo)*100,100);
+    const color = pct>=100?'var(--green)':pct>=60?'var(--accent)':pct>=30?'var(--amber)':'var(--red)';
+    const lancsMeta = dados
+      .filter(l => l.tipo==='despesa' && l.categoria === m.catNome)
+      .sort((a,b) => b.data.localeCompare(a.data))
+      .slice(0, 5);
+    const lancHtml = lancsMeta.length
+      ? lancsMeta.map(l=>`
+          <div class="meta-lanc-item">
+            <span class="meta-lanc-desc">${esc(l.descricao)}</span>
+            <span class="meta-lanc-right">
+              <span class="meta-lanc-date">${l.data}</span>
+              <span class="meta-lanc-val">+ ${brl(l.valor)}</span>
+            </span>
+          </div>`).join('')
+      : `<div style="font-size:11px;color:var(--text3);padding:.25rem 0">nenhum lançamento ainda</div>`;
+
+    return `<div class="meta-card">
+      <div class="meta-header">
+        <div>
+          <div class="meta-name">${esc(m.nome)}</div>
+          <div class="meta-cat-badge">📂 ${esc(m.catNome || 'META: '+m.nome)}</div>
+          <div style="font-size:12px;color:var(--text3);margin-top:.4rem;font-family:'JetBrains Mono',monospace">faltam ${brl(Math.max(m.alvo-atual,0))}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="meta-pct" style="color:${color}">${pct.toFixed(0)}%</div>
+          <button class="btn-del-meta" onclick="deleteMeta('${m.id}')" style="margin-top:.5rem">excluir</button>
+        </div>
+      </div>
+      <div class="meta-track"><div class="meta-fill" style="width:${pct}%;background:${color}"></div></div>
+      <div class="meta-vals">
+        <span style="color:${color};font-family:'JetBrains Mono',monospace">${brl(atual)}</span>
+        <span style="color:var(--text3);font-family:'JetBrains Mono',monospace">${brl(m.alvo)}</span>
+      </div>
+      <div class="meta-lancamentos">
+        <div class="meta-lanc-title">últimos lançamentos</div>
+        <div class="meta-lanc-list">${lancHtml}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function addCat(tipoC) {
+  const inputId = tipoC==='receita' ? 'cat-new-rec' : 'cat-new-des';
+  const nome = document.getElementById(inputId).value.trim();
+  if (!nome) { showToast('digite um nome','err'); return }
+  const res = await post('/api/categoria/criar', { nome, tipo: tipoC });
+  if (res.ok) {
+    document.getElementById(inputId).value = '';
+    showToast('categoria criada','ok');
+    await loadCats();
+  } else {
+    showToast(res.erro || 'categoria já existe','err');
+  }
+}
+
+async function deletarCat(id, nome) {
+  if (!confirm(`excluir a categoria "${nome}"?`)) return;
+  await post('/api/categoria/deletar', { id });
+  showToast('categoria removida','ok');
+  await loadCats();
+}
+
+function startEditCat(id) {
+  const row = document.getElementById('cat-row-'+id);
+  if (!row) return;
+  const span = row.querySelector('.cat-item-name');
+  const nome = span.textContent;
+  span.outerHTML = `<input class="cat-item-input" id="cat-inp-${id}" value="${esc(nome)}" maxlength="40">`;
+  row.querySelector('.btn-ci.edt').style.display='none';
+  row.querySelector('.btn-ci.sav').style.display='flex';
+  row.querySelector('.btn-ci.can').style.display='flex';
+  document.getElementById('cat-inp-'+id).focus();
+}
+
+async function saveEditCat(id, nomeAntigo, tipoC) {
+  const inp = document.getElementById('cat-inp-'+id);
+  if (!inp) return;
+  const novoNome = inp.value.trim();
+  if (!novoNome) { showToast('nome não pode ser vazio','err'); return }
+  const res = await post('/api/categoria/editar', { id, nome: novoNome, nome_antigo: nomeAntigo, tipo: tipoC });
+  if (res.ok) { showToast('categoria atualizada','ok'); await loadCats() }
+  else { showToast(res.erro || 'nome já existe','err') }
+}
+
+function renderCatLists() {
+  renderCatList('cat-list-rec', catRaw.filter(c=>c.tipo==='receita'), 'receita');
+  renderCatList('cat-list-des', catRaw.filter(c=>c.tipo==='despesa'), 'despesa');
+}
+
+function renderCatList(elId, lista, tipoC) {
+  const el = document.getElementById(elId);
+  if (!lista.length) { el.innerHTML='<div class="cat-empty">nenhuma categoria</div>'; return }
+  el.innerHTML = lista.map(c => `
+    <div class="cat-item" id="cat-row-${c.id}">
+      <span class="cat-item-name">${esc(c.nome)}</span>
+      <button class="btn-ci edt" onclick="startEditCat('${c.id}')" title="editar">✎</button>
+      <button class="btn-ci sav" onclick="saveEditCat('${c.id}','${esc(c.nome)}','${tipoC}')" title="salvar" style="display:none">✓</button>
+      <button class="btn-ci can" onclick="renderCatLists()" title="cancelar" style="display:none">✕</button>
+      <button class="btn-ci del" onclick="deletarCat('${c.id}','${esc(c.nome)}')" title="excluir">×</button>
+    </div>`).join('');
+}
+
+function brl(v) {
+  return 'R$ ' + Math.abs(v).toLocaleString('pt-BR', { minimumFractionDigits:2, maximumFractionDigits:2 });
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function pxH(v, max, maxPx) { return Math.max(4, Math.round((v/max)*maxPx)) }
+function getLast6Months() {
+  return Array.from({length:6}, (_,i) => {
+    const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-5+i);
+    return {
+      key: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,
+      label: d.toLocaleDateString('pt-BR',{month:'short'}).replace('.','')
+    };
+  });
+}
+function showMsg(txt, color) {
+  const el = document.getElementById('msg');
+  el.textContent=txt; el.style.color=color; el.style.opacity='1';
+  setTimeout(()=>el.style.opacity='0', 2500);
+}
+let _tt;
+function showToast(txt, type) {
+  const el = document.getElementById('toast');
+  el.textContent=txt; el.className='toast show '+type;
+  clearTimeout(_tt); _tt = setTimeout(()=>el.className='toast', 2800);
+}
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter') {
+    if (document.activeElement.id==='cat-new-rec') addCat('receita');
+    if (document.activeElement.id==='cat-new-des') addCat('despesa');
+  }
+  if (e.key==='Escape') document.getElementById('modal-overlay').classList.remove('open');
+});
+</script>
+</body>
+</html>

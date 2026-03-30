@@ -1,0 +1,21 @@
+# banco de dados (dados pessoais — não versionar)
+*.db
+
+# build PyInstaller
+dist/
+build/
+*.spec
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.env
+venv/
+.venv/
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
